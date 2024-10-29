@@ -1,5 +1,5 @@
 from .base import *
-from .base_async import *
+# from .base_async import *
 from .memory import *
 from .ranker import *
 from .function import *
@@ -13,18 +13,18 @@ __all__ = [
     "strict_output",
     "strict_function",
     "Function",
-    "AsyncFunction",
+    # "AsyncFunction",
     "chat",
-    "chat_async",
+    # "chat_async",
     "Ranker",
     "ConversableAgent",
     "ConversationWrapper",
-    "AsyncRanker",
+    # "AsyncRanker",
     "Memory",
     "MemoryTemplate",
-    "AsyncMemory",
+    # "AsyncMemory",
     "ChromaDbMemory",
-    "AsyncChromaDbMemory",
+    # "AsyncChromaDbMemory",
     "Agent",
-    "AsyncAgent",
+    # "AsyncAgent",
 ]
