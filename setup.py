@@ -15,7 +15,6 @@ setup(
         "pandas",
         "chromadb",
         "xlrd",
-        "chromadb>=0.5.2",
-        "asyncio"
+        "chromadb>=0.5.2"
     ],
 )
