@@ -3,7 +3,6 @@ import inspect
 from typing import get_type_hints
 
 from agentjo.base import strict_json
-from agentjo.base_async import strict_json_async
 
 from agentjo.utils import ensure_awaitable
 
@@ -321,103 +320,6 @@ class Function(BaseFunction):
 
         return res
         
-        
             
-class AsyncFunction(BaseFunction):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        ensure_awaitable(self.llm, 'llm')
-        if self.fn_name is None:
-            # if external function has a name, use it
-            if self.external_fn is not None and hasattr(self.external_fn, '__name__') and self.external_fn.__name__ != '<lambda>':
-                self.fn_name = self.external_fn.__name__
-        self.__name__ = self.fn_name
-        
-    async def async_init(self): 
-        ''' This generates the name for the function using strict_json_async '''
-        if self.fn_name is None:
-            res = await strict_json_async(system_prompt = "Output a function name to summarise the usage of this function.",
-                              user_prompt = str(self.fn_description),
-                              output_format = {"Thoughts": "What function does", "Name": "Function name with _ separating words that summarises what function does"},
-                             llm = self.llm,
-                             **self.kwargs)
-            self.fn_name = res['Name']
-
-            # change instance's name to function's name
-            self.__name__ = self.fn_name
-        
-    async def __call__(self, *args, **kwargs):
-        ''' Describes the function, and inputs the relevant parameters as either unnamed variables (args) or named variables (kwargs)
-        
-        Inputs:
-        - shared_varables: Dict. Default: empty dict. The variables which will be shared between functions. Only passed in if required by function 
-        - *args: Tuple. Unnamed input variables of the function. Will be processed to var1, var2 and so on based on order in the tuple
-        - **kwargs: Dict. Named input variables of the function. Can also be variables to pass into strict_json
-        
-        Output:
-        - res: Dict. JSON containing the output variables'''
-        
-        # get the shared_variables if there are any
-      
-        if self.fn_name is None:
-            await self.async_init()
-        
-        function_kwargs, shared_variables = self._prepare_function_kwargs(*args, **kwargs)
-
-        # extract out only variables not listed in variable list
-        strict_json_kwargs = {
-                    my_key: kwargs[my_key] for my_key in kwargs 
-                    if my_key not in self.variable_names and my_key != 'shared_variables'
-                }
-               
-                
-        # If strict_json function, do the function. 
-        if self.external_fn is None:
-            res = await strict_json_async(system_prompt = self.fn_description,
-                            user_prompt = function_kwargs,
-                            output_format = self.output_format,
-                            llm = self.llm,
-                            **self.kwargs, **strict_json_kwargs)
-            
-        # Else run the external function
-        else:
-            res = {}
-            # if external function uses shared_variables, pass it in
-            argspec = inspect.getfullargspec(self.external_fn)
-            if 'shared_variables' in argspec.args:
-                if  inspect.iscoroutinefunction(self.external_fn):
-                    fn_output = await self.external_fn(shared_variables = shared_variables, **function_kwargs)
-                else: 
-                    fn_output = self.external_fn(shared_variables = shared_variables, **function_kwargs)
-            else:
-                if  inspect.iscoroutinefunction(self.external_fn):
-                    fn_output = await self.external_fn(**function_kwargs)
-                else:
-                    fn_output = self.external_fn(**function_kwargs)
-                
-            # if there is nothing in fn_output, skip this part
-            if fn_output is not None:
-                output_keys = list(self.output_format.keys())
-                # convert the external function into a tuple format to parse it through the JSON dictionary output format
-                if not isinstance(fn_output, tuple):
-                    fn_output = [fn_output]
-
-                for i in range(len(fn_output)):
-                    if len(output_keys) > i:
-                        res[output_keys[i]] = fn_output[i]
-                    else:
-                        res[f'output_{i+1}'] = fn_output[i]
-        
-         
-        # check if any of the output variables have a s_, which means we update the shared_variables and not output it
-        self._update_shared_variables(res, shared_variables)
-                
-        if res == {}:
-            res = {'Status': 'Completed'}
-
-        return res
-
-
-    
 # alternative name for strict_function (it is now called Function)
 strict_function = Function
