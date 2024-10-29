@@ -12,7 +12,6 @@ import pandas as pd
 from abc import ABC, abstractmethod
 
 from agentjo.base import strict_json
-from agentjo.base_async import strict_json_async
 
 from agentjo.ranker import AsyncRanker, Ranker
 from agentjo.utils import ensure_awaitable, top_k_index
