@@ -11,7 +11,6 @@ from termcolor import colored
 import requests
 from agentjo.base import strict_json
 from agentjo.function import Function
-from agentjo.function import AsyncFunction
 from agentjo.memory import Memory
 from agentjo.utils import ensure_awaitable
 
