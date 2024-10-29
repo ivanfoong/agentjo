@@ -8,4 +8,3 @@ python-docx
 pandas
 xlrd
 chromadb>=0.5.2
-asyncio
