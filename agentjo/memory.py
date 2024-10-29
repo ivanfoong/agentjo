@@ -5,11 +5,11 @@ import time
 from typing import Any
 import PyPDF2
 from docx import Document
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 import chromadb
 from chromadb.api.async_client import AsyncClient
 from chromadb.api.client import Client
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
+from semantic_text_splitter import TextSplitter
 import copy
 
 import pandas as pd
@@ -64,15 +64,9 @@ class MemoryTemplate(ABC):
             )
 
         if not text_splitter:
-            text_splitter = RecursiveCharacterTextSplitter(
-                chunk_size=500,
-                chunk_overlap=100,
-                length_function=len,
-                is_separator_regex=False,
-                separators=[".\n", "\n"],
-            )
+            text_splitter = TextSplitter((500,600))
 
-        texts = text_splitter.split_text(text)
+        texts = text_splitter.chunks(text)
         memories = [{"content": text, "filepath": filepath} for text in texts]
         return memories
 
